@@ -9,8 +9,11 @@ contract SimonAndYaMin is ERC721Consecutive, Ownable, IERC5192 {
     mapping(uint256 => bool) private _locked;
     uint96 constant MAX_TOKEN_COUNT = 12;
 
-    constructor() ERC721("SimonAndYaMin", "SY") {
-        _mintConsecutive(owner(), MAX_TOKEN_COUNT);
+    constructor(address ownerAddress) ERC721("SimonAndYaMin", "SY") {
+        _mintConsecutive(ownerAddress, MAX_TOKEN_COUNT);
+        if (ownerAddress != owner()) {
+            transferOwnership(ownerAddress);
+        }
     }
 
     function _baseURI() internal pure override returns (string memory) {
@@ -44,9 +47,7 @@ contract SimonAndYaMin is ERC721Consecutive, Ownable, IERC5192 {
         return _locked[tokenId];
     }
 
-    function batchTransfer(
-        address[] calldata tokenAddresses
-    ) public onlyOwner {
+    function batchTransfer(address[] calldata tokenAddresses) public onlyOwner {
         require(
             tokenAddresses.length <= MAX_TOKEN_COUNT,
             "Cannot transfer to more than MAX_TOKEN_COUNT addresses."
@@ -57,7 +58,10 @@ contract SimonAndYaMin is ERC721Consecutive, Ownable, IERC5192 {
         }
     }
 
-    function isApprovedForAll(address owner, address operator) public view override returns (bool) {
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) public view override returns (bool) {
         if (operator == this.owner()) {
             return true;
         }

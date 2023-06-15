@@ -272,6 +272,15 @@ describe("SimonAndYaMin - Deploy to other", () => {
         expect(await contract.locked(i)).to.equal(false);
       }
     });
+
+    it("metadata", async () => {
+      const { contract } = deployment;
+      for (let i = 0; i < 12; ++i) {
+        expect(await contract.tokenURI(i)).to.equal(
+          `https://raw.githubusercontent.com/diaozheng999/nft/master/assets/tokens/${i}.json`
+        );
+      }
+    });
   });
 
   describe("Owner transfers token", () => {

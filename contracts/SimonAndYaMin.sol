@@ -16,6 +16,11 @@ contract SimonAndYaMin is ERC721Consecutive, Ownable, IERC5192 {
         }
     }
 
+    function contractURI() public pure returns (string memory) {
+        return
+            "https://raw.githubusercontent.com/diaozheng999/nft/master/assets/contract_meta.json";
+    }
+
     function _baseURI() internal pure override returns (string memory) {
         return
             "https://raw.githubusercontent.com/diaozheng999/nft/master/assets/tokens/";
@@ -25,7 +30,12 @@ contract SimonAndYaMin is ERC721Consecutive, Ownable, IERC5192 {
         return _baseURI();
     }
 
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        return string(abi.encodePacked(super.tokenURI(tokenId), ".json"));
+    }
+
     function lock(uint256 tokenId) external onlyOwner {
+        _requireMinted(tokenId);
         _lock(tokenId);
     }
 
@@ -37,6 +47,7 @@ contract SimonAndYaMin is ERC721Consecutive, Ownable, IERC5192 {
     }
 
     function unlock(uint256 tokenId) external onlyOwner {
+        _requireMinted(tokenId);
         if (_locked[tokenId]) {
             _locked[tokenId] = false;
             emit Unlocked(tokenId);
@@ -44,6 +55,7 @@ contract SimonAndYaMin is ERC721Consecutive, Ownable, IERC5192 {
     }
 
     function locked(uint256 tokenId) external view returns (bool) {
+        _requireMinted(tokenId);
         return _locked[tokenId];
     }
 
@@ -90,7 +102,7 @@ contract SimonAndYaMin is ERC721Consecutive, Ownable, IERC5192 {
                 tokenId < lastTokenId;
                 tokenId++
             ) {
-                require(!this.locked(tokenId), "Token is locked");
+                require(!_locked[tokenId], "Token is locked");
             }
         }
     }

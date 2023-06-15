@@ -2,7 +2,7 @@ import  { writeFileSync } from "fs";
 
 for (let i = 0; i < 12; ++i) {
   writeFileSync(
-    `assets/tokens/${i}`,
+    `assets/tokens/${i}.json`,
     JSON.stringify({
       image:
         `https://raw.githubusercontent.com/diaozheng999/nft/master/assets/images/token-${i}.jpg`,

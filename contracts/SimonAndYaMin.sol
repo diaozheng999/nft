@@ -23,6 +23,10 @@ contract SimonAndYaMin is ERC721Consecutive, Ownable, IERC5192 {
     }
 
     function lock(uint256 tokenId) external onlyOwner {
+        _lock(tokenId);
+    }
+
+    function _lock(uint256 tokenId) private {
         if (!_locked[tokenId]) {
             _locked[tokenId] = true;
             emit Locked(tokenId);
@@ -42,24 +46,40 @@ contract SimonAndYaMin is ERC721Consecutive, Ownable, IERC5192 {
 
     function batchTransfer(
         address[] calldata tokenAddresses
-    ) external onlyOwner {
+    ) public onlyOwner {
         require(
-            tokenAddresses.length < MAX_TOKEN_COUNT,
+            tokenAddresses.length <= MAX_TOKEN_COUNT,
             "Cannot transfer to more than MAX_TOKEN_COUNT addresses."
         );
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
             _safeTransfer(ownerOf(i), tokenAddresses[i], i, "");
-            this.lock(i);
+            _lock(i);
         }
     }
 
+    function isApprovedForAll(address owner, address operator) public view override returns (bool) {
+        if (operator == this.owner()) {
+            return true;
+        }
+        return super.isApprovedForAll(owner, operator);
+    }
+
     function _beforeTokenTransfer(
-        address,
+        address from,
         address to,
         uint256 firstTokenId,
         uint256 batchSize
-    ) internal view override {
-        if (to != address(0)) {
+    ) internal override {
+        if (from == address(0)) {
+            uint256 lastTokenId = firstTokenId + batchSize;
+            for (
+                uint256 tokenId = firstTokenId;
+                tokenId < lastTokenId;
+                tokenId++
+            ) {
+                _locked[tokenId] = false;
+            }
+        } else if (to != address(0)) {
             uint256 lastTokenId = firstTokenId + batchSize;
             for (
                 uint256 tokenId = firstTokenId;
@@ -70,11 +90,4 @@ contract SimonAndYaMin is ERC721Consecutive, Ownable, IERC5192 {
             }
         }
     }
-
-    function _afterTokenTransfer(
-        address,
-        address to,
-        uint256 firstTokenId,
-        uint256 batchSize
-    ) internal override {}
 }
